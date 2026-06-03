@@ -80,7 +80,7 @@ class REXInstaller:
         
         # Log area
         self.log_frame = tk.Frame(content, bg="white", relief=tk.SUNKEN, bd=1)
-        self.log_frame.pack(fill=tk.BOTH, expand=False, padx=0, pady=10, height=120)
+        self.log_frame.pack(fill=tk.BOTH, expand=False, padx=0, pady=10)
         
         log_label = tk.Label(self.log_frame, text="Installation Log:", bg="white", font=("Arial", 9, "bold"))
         log_label.pack(anchor=tk.W, padx=5, pady=2)
