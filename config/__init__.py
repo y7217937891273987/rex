@@ -1,3 +1,4 @@
-"""
-Configuration package for REX AI System.
-"""
+"""Configuration management for REX system."""
+from .settings import Settings
+
+__all__ = ['Settings']

@@ -1,95 +1,84 @@
-"""
-Configuration settings for REX AI System.
-"""
-
+"""Core settings and configuration management for REX AI system."""
 import os
-from typing import Dict, Any
-from dotenv import load_dotenv
+from pathlib import Path
+from typing import Optional
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
-load_dotenv()
 
-# System Configuration
-SYSTEM_CONFIG: Dict[str, Any] = {
-    "name": "REX",
-    "version": "1.0.0",
-    "description": "Reasoning Engine eXtended - Advanced JARVIS-like AI",
-    "author": "anthonyiceflame784-byte",
-    "max_memory_mb": 2048,
-    "max_agents": 10,
-    "timeout_seconds": 300,
-}
+class Settings(BaseSettings):
+    """REX System Configuration."""
+    
+    # Project
+    PROJECT_NAME: str = "REX AI System"
+    PROJECT_VERSION: str = "1.0.0"
+    
+    # Environment
+    REX_ENV: str = Field(default="development", alias="REX_ENV")
+    REX_LOG_LEVEL: str = Field(default="INFO", alias="REX_LOG_LEVEL")
+    
+    # API Configuration
+    REX_API_PORT: int = Field(default=5000, alias="REX_API_PORT")
+    REX_API_HOST: str = Field(default="0.0.0.0", alias="REX_API_HOST")
+    REX_API_TIMEOUT: int = 30
+    
+    # OpenAI Configuration
+    OPENAI_API_KEY: str = Field(default="", alias="OPENAI_API_KEY")
+    OPENAI_MODEL: str = Field(default="gpt-4-turbo-preview", alias="OPENAI_MODEL")
+    OPENAI_TEMPERATURE: float = Field(default=0.7, alias="OPENAI_TEMPERATURE")
+    OPENAI_MAX_TOKENS: int = 4096
+    
+    # Security
+    REX_PERMISSION_REQUIRED: bool = Field(default=True, alias="REX_PERMISSION_REQUIRED")
+    REX_ADMIN_USER: str = Field(default="admin", alias="REX_ADMIN_USER")
+    REX_SECRET_KEY: str = Field(default="dev-secret-key-change-in-production", alias="REX_SECRET_KEY")
+    
+    # Memory Configuration
+    REX_MEMORY_TYPE: str = Field(default="hybrid", alias="REX_MEMORY_TYPE")  # hybrid, sqlite, redis
+    REX_MEMORY_MAX_ITEMS: int = Field(default=10000, alias="REX_MEMORY_MAX_ITEMS")
+    REX_MEMORY_PERSISTENCE: str = Field(default="sqlite", alias="REX_MEMORY_PERSISTENCE")
+    
+    # Voice Configuration
+    REX_VOICE_ENABLED: bool = Field(default=True, alias="REX_VOICE_ENABLED")
+    REX_VOICE_ENGINE: str = Field(default="pyttsx3", alias="REX_VOICE_ENGINE")
+    REX_VOICE_RATE: int = Field(default=150, alias="REX_VOICE_RATE")
+    
+    # Self-Modification
+    REX_SELF_MODIFY_ENABLED: bool = Field(default=True, alias="REX_SELF_MODIFY_ENABLED")
+    REX_CODE_REVIEW_REQUIRED: bool = Field(default=True, alias="REX_CODE_REVIEW_REQUIRED")
+    REX_MAX_ITERATIONS: int = Field(default=10, alias="REX_MAX_ITERATIONS")
+    
+    # Database
+    REX_DB_TYPE: str = Field(default="sqlite", alias="REX_DB_TYPE")
+    REX_DB_PATH: str = Field(default="data/rex.db", alias="REX_DB_PATH")
+    
+    # Redis Configuration (optional)
+    REDIS_ENABLED: bool = Field(default=False, alias="REDIS_ENABLED")
+    REDIS_HOST: str = Field(default="localhost", alias="REDIS_HOST")
+    REDIS_PORT: int = Field(default=6379, alias="REDIS_PORT")
+    
+    class Config:
+        """Pydantic config."""
+        env_file = ".env"
+        case_sensitive = False
+        extra = "allow"
+    
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development mode."""
+        return self.REX_ENV.lower() == "development"
+    
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production mode."""
+        return self.REX_ENV.lower() == "production"
+    
+    def validate_critical_settings(self) -> tuple[bool, str]:
+        """Validate critical settings are configured."""
+        if not self.OPENAI_API_KEY or self.OPENAI_API_KEY == "your_openai_api_key_here":
+            return False, "OPENAI_API_KEY not configured"
+        return True, "Configuration valid"
 
-# Logging Configuration
-LOG_LEVEL = os.getenv("REX_LOG_LEVEL", "INFO")
-LOG_FILE = os.getenv("REX_LOG_FILE", "rex.log")
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-# API Configuration
-API_CONFIG = {
-    "enable_rest_api": True,
-    "api_port": int(os.getenv("REX_API_PORT", 5000)),
-    "api_host": os.getenv("REX_API_HOST", "127.0.0.1"),
-    "enable_cors": True,
-}
-
-# Voice Configuration
-VOICE_CONFIG = {
-    "enabled": True,
-    "engine": "google",
-    "language": "en-US",
-    "voice_speed": 1.0,
-}
-
-# Memory Configuration
-MEMORY_CONFIG = {
-    "max_short_term_items": 1000,
-    "max_long_term_items": 10000,
-    "memory_retention_days": 365,
-    "enable_encryption": False,
-}
-
-# Security Configuration
-SECURITY_CONFIG = {
-    "require_permissions": True,
-    "permission_level": "strict",
-    "enable_audit_log": True,
-    "audit_retention_days": 30,
-}
-
-# Plugin Configuration
-PLUGIN_CONFIG = {
-    "plugin_directory": "plugins",
-    "auto_load_plugins": True,
-    "enable_plugin_sandboxing": True,
-}
-
-# Reasoning Configuration
-REASONING_CONFIG = {
-    "max_reasoning_steps": 10,
-    "reasoning_timeout": 30,
-    "enable_multi_path_reasoning": True,
-    "confidence_threshold": 0.7,
-}
-
-# Self-Expansion Configuration
-SELF_EXPANSION_CONFIG = {
-    "enabled": True,
-    "max_code_generation_attempts": 5,
-    "auto_learn_enabled": True,
-    "code_review_required": True,
-}
-
-# Agent Configuration
-AGENT_CONFIG = {
-    "default_timeout": 60,
-    "max_parallel_agents": 5,
-    "enable_agent_communication": True,
-}
-
-# OpenAI Configuration
-OPENAI_CONFIG = {
-    "api_key": os.getenv("OPENAI_API_KEY"),
-    "model": "gpt-4",
-    "temperature": 0.7,
-    "max_tokens": 2000,
-}
+# Global settings instance
+settings = Settings()

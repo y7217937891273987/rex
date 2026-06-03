@@ -1,48 +1,46 @@
-"""
-Utilities module - Logging setup.
-"""
-
+"""Logging configuration."""
 import logging
-import logging.handlers
-import os
-from config.settings import LOG_FILE, LOG_FORMAT
+import logging.config
+from pathlib import Path
+from config.settings import settings
 
 
-def setup_logging(name: str, level: str = "INFO") -> logging.Logger:
-    """
-    Setup logging for a module.
+def setup_logging() -> None:
+    """Setup logging configuration."""
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
     
-    Args:
-        name: Module name
-        level: Log level (INFO, DEBUG, WARNING, ERROR, CRITICAL)
-        
-    Returns:
-        Configured logger instance
-    """
-    logger = logging.getLogger(name)
-    logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "standard": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            },
+            "detailed": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+            }
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": settings.REX_LOG_LEVEL,
+                "formatter": "standard",
+                "stream": "ext://sys.stdout"
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": settings.REX_LOG_LEVEL,
+                "formatter": "detailed",
+                "filename": "logs/rex.log",
+                "maxBytes": 10485760,
+                "backupCount": 5
+            }
+        },
+        "root": {
+            "level": settings.REX_LOG_LEVEL,
+            "handlers": ["console", "file"]
+        }
+    }
     
-    # Create logs directory if it doesn't exist
-    os.makedirs("logs", exist_ok=True)
-    
-    # File handler with rotation
-    log_path = f"logs/{LOG_FILE}"
-    file_handler = logging.handlers.RotatingFileHandler(
-        log_path,
-        maxBytes=10485760,
-        backupCount=5
-    )
-    file_handler.setLevel(getattr(logging, level.upper(), logging.INFO))
-    file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(getattr(logging, level.upper(), logging.INFO))
-    console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    
-    # Add handlers if not already present
-    if not logger.handlers:
-        logger.addHandler(file_handler)
-        logger.addHandler(console_handler)
-    
-    return logger
+    logging.config.dictConfig(logging_config)
